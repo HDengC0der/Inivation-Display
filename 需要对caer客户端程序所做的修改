@@ -1,0 +1,21 @@
+具体安装过程可参考许昌上传的位于JunJieZhang/inteagle_caer中的caer文件夹和关于这个文件夹的描述
+安装好caer之后打开终端并且将用户切换的root（拥有最高权限的根用户），并执行以下指令：（切换到root用户的指令为sudo su root）
+vim caer/utils/tcpststat/tcpststat.c（次条指令确保是使用root用户执行，否则将不具有权限修改tcpststat.c这个执行文件）
+打开文件后，输入指令:set nu，给程序加上行数
+翻到131行，在while循环之前，插入如下代码：
+FILE *fp;                                  //创建一个文件指针
+fp=fopen("/var/www/html/data.txt","w");    //将上面创造的文件指针指向某一个文件，fopen函数中第一个参数是你想输出数据的文件路径，第二个是以什么方式访问该文件，在这里为写入“write”。
+int32_t startTS=0;                         //定义一个时间戳，每0.03秒收集一个帧的图像数据
+（后面跟着while循环）
+
+完成上述步骤之后，在195行，即bool polarity = caerPolarityEventGetPolarity(polarityEvent);这行程序后面添加如下程序：
+fprintf(fp,"%d",xAddr);
+fprintf(fp,"/");
+fprintf(fp,"%d",yAddr);
+fprintf(fp,"/");
+fprintf(fp,"%d",polarity);
+fprintf(fp,"/");                //这几行中输出“/”到文件中是为了在opengl程序中更好的读取文件
+if(firstTS-startTs>=33333){     //判断两个数据包之间相差的时间戳是否大于或等于0.03s如果是的话则为一帧，并且在文件中输出换行符。
+  fprintf(fp,"\n");
+  startTS=firstTS;
+}
