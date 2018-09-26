@@ -1,0 +1,60 @@
+关于openGL中glutTimerFunc函数的解析：
+glutTimerFunc是openGL之所以能够实现动画功能的主要函数，glutTimerFunc函数包括三个参数，glutTimerFunc(unsigned int millis, void (*func)(int), int value)
+其中unsigned int millis代表你希望窗口更新的速率，void (*func)(int)代表回调函数的入口地址，最后一项代表区别值。
+关于回调函数，回调函数一般定义在main函数之外，回调函数中的内容一般是对图形函数的形参进行修改。
+一个栗子:
+void timerFunc(int value)
+{
+    if (posX > windowWidth - rsize || posX < 0)
+        xstep = -xstep;
+    if (posY > windowHeight - rsize || posY < 0)
+        ystep = -ystep;
+
+    if (posX > windowWidth - rsize)
+        posX = windowWidth - rsize - 1;
+    if (posY > windowHeight - rsize)
+        posY = windowHeight - rsize - 1;
+
+    posX += xstep;
+    posY += ystep;
+
+    /*
+    glutPostRedisplay 标记当前窗口需要重新绘制。
+    通过glutMainLoop下一次循环时，窗口显示将被回调以重新显示窗口的正常面板。
+    */
+    glutPostRedisplay();
+
+    /*
+    （1）如果用定时器的话，初始的时候注册一个定时器的回调函数，原型是
+    glutTimerFunc(unsigned int millis, void (*func)(int value), int value);
+    参数对应关系为：glutTimerFunc(毫秒数, 回调函数指针, 区别值);
+    （2）写自己的回调函数 void OnTimer(int value);
+    用value区分是哪个定时器
+    （3）在函数里改变和位置有关的变量，然后调用glutPostRedisplay();用来重绘
+    （4）最后再次调用glutTimerFunc，因为glut的定时器是调用一次才产生一次定时，所以如果要持续产生定时的话，
+
+    在定时函数末尾再次调用glutTimerFunc
+
+    */
+    glutTimerFunc(33, timerFunc, 1);
+}
+int main(int argc, char *argv[])
+{
+    glutInit(&argc, argv);
+    //glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB); // 使用双缓冲
+
+    glutInitWindowPosition(100, 100);
+    glutInitWindowSize(windowWidth, windowHeight);
+
+    glutCreateWindow("第一个OpenGL程序");
+
+    gluOrtho2D(0.0, windowWidth, 0.0, windowHeight);
+
+    glutDisplayFunc(&myDisplay);
+
+    glutTimerFunc(33, timerFunc, 1);
+
+    glutMainLoop();
+    return 0;
+}
